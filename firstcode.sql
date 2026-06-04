@@ -1,1 +1,1 @@
-SELECT 4;
+SELECT 3;
