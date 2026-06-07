@@ -1,0 +1,295 @@
+---------------------------------------------------
+-- Aufgabe 1 
+-- Erledigen Sie die folgenden Aufgaben mit der Oberfläche des SSMS:
+-- 1. Legen Sie eine neue Datenbank BackupTest an. Die Datenbank soll das „vollständige Wiederherstellungsmodell“ verwenden.
+---------------------------------------------------
+
+
+
+CREATE DATABASE BackupTest;
+GO
+
+ALTER DATABASE BackupTest
+SET RECOVERY FULL;
+GO
+
+
+---------------------------------------------------
+-- 2. Erstellen Sie eien Ordner für die Sicherungen. Verwenden Sie diesen für alle Sicherungen.
+---------------------------------------------------
+
+-- Antwort
+
+-- Ordner manuell erstellen:
+-- C:\Backup
+
+
+---------------------------------------------------
+-- 3. Legen Sie in der Datenbank eine Tabelle „Cities“ an. Erstellen Sie außerdem eine Tabelle Länder.
+---------------------------------------------------
+
+-- Antwort
+
+USE BackupTest;
+GO
+
+CREATE TABLE Cities (
+    Name VARCHAR(50)
+);
+
+CREATE TABLE Laender (
+    Name VARCHAR(50)
+);
+GO
+
+
+---------------------------------------------------
+-- 4. Kopieren Sie aus der Mondial-Datenbank (Tabelle City) alle Städte, deren Namen mit den Buchstaben „a-f“ beginnen, in die Tabelle „Cities“.
+---------------------------------------------------
+
+-- Antwort
+
+INSERT INTO Cities
+SELECT Name
+FROM Mondial.dbo.City
+WHERE Name LIKE '[A-F]%';
+GO
+
+
+---------------------------------------------------
+-- 5. Erstellen Sie eine Vollsicherung der Datenbank.
+---------------------------------------------------
+
+-- Antwort
+
+BACKUP DATABASE BackupTest
+TO DISK = 'C:\Backup\BackupTest.bak'
+WITH INIT;
+GO
+
+
+---------------------------------------------------
+-- 6. Löschen Sie die Datenbank und stellen Sie diese anschließend aus der eben erstellten Sicherung wieder her.
+---------------------------------------------------
+
+-- Antwort
+
+USE master;
+GO
+
+DROP DATABASE BackupTest;
+GO
+
+RESTORE DATABASE BackupTest
+FROM DISK = 'C:\Backup\BackupTest.bak'
+WITH REPLACE;
+GO
+
+
+---------------------------------------------------
+-- 7. Fügen Sie an die Städtetabelle die Städte, deren Namen mit „g-m“ beginnen an und erstellen Sie eine differentielle Sicherung.
+---------------------------------------------------
+
+-- Antwort
+
+USE BackupTest;
+GO
+
+INSERT INTO Cities
+SELECT Name
+FROM Mondial.dbo.City
+WHERE Name LIKE '[G-M]%';
+GO
+
+BACKUP DATABASE BackupTest
+TO DISK = 'C:\Backup\BackupTest.bak'
+WITH DIFFERENTIAL;
+GO
+
+
+---------------------------------------------------
+-- 8. Kopieren Sie alle Zeilen aus der Tabelle Country Tabelle in die Tabelle „Länder“. Erstellen Sie eine weitere differentielle Sicherung.
+---------------------------------------------------
+
+-- Antwort
+
+INSERT INTO Laender
+SELECT Name
+FROM Mondial.dbo.Country;
+GO
+
+BACKUP DATABASE BackupTest
+TO DISK = 'C:\Backup\BackupTest.bak'
+WITH DIFFERENTIAL;
+GO
+
+
+---------------------------------------------------
+-- 9. Löschen Sie die DB erneut und stellen Sie die DB aus den Sicherungen wieder her. Welche Sicherungen benötigen Sie dazu?
+---------------------------------------------------
+
+-- Antwort
+
+-- Benötigt:
+-- Vollbackup + letzte differentielle Sicherung
+
+USE master;
+GO
+
+DROP DATABASE BackupTest;
+GO
+
+RESTORE DATABASE BackupTest
+FROM DISK = 'C:\Backup\BackupTest.bak'
+WITH NORECOVERY;
+GO
+
+RESTORE DATABASE BackupTest
+FROM DISK = 'C:\Backup\BackupTest.bak'
+WITH RECOVERY;
+GO
+
+
+---------------------------------------------------
+-- 10. Fügen Sie nun die Städte, die mit „n-r“ beginnen an die Tabelle „Städte“ an.
+---------------------------------------------------
+
+-- Antwort
+
+USE BackupTest;
+GO
+
+INSERT INTO Cities
+SELECT Name
+FROM Mondial.dbo.City
+WHERE Name LIKE '[N-R]%';
+GO
+
+
+---------------------------------------------------
+-- 11. Sichern Sie das Transaktionsprotokoll.
+---------------------------------------------------
+
+-- Antwort
+
+BACKUP LOG BackupTest
+TO DISK = 'C:\Backup\BackupTest.bak';
+GO
+
+
+---------------------------------------------------
+-- 12. Löschen Sie die Datenbank stellen Sie die DB aus den Sicherungen komplett wieder her.
+---------------------------------------------------
+
+-- Antwort
+
+USE master;
+GO
+
+DROP DATABASE BackupTest;
+GO
+
+RESTORE DATABASE BackupTest
+FROM DISK = 'C:\Backup\BackupTest.bak'
+WITH NORECOVERY;
+GO
+
+RESTORE LOG BackupTest
+FROM DISK = 'C:\Backup\BackupTest.bak'
+WITH RECOVERY;
+GO
+
+
+---------------------------------------------------
+-- 13. Nun fügen Sie auch noch die restlichen Städte hinzu, erstellen erneut eine Sicherung des Transaktionsprotokolls.
+---------------------------------------------------
+
+-- Antwort
+
+USE BackupTest;
+GO
+
+INSERT INTO Cities
+SELECT Name
+FROM Mondial.dbo.City;
+GO
+
+BACKUP LOG BackupTest
+TO DISK = 'C:\Backup\BackupTest.bak';
+GO
+
+
+---------------------------------------------------
+-- 14. Löschen Sie die Tabelle „Cities“ und stellen Sie die Daten aus den Sicherungen wieder her.
+---------------------------------------------------
+
+-- Antwort
+
+DROP TABLE Cities;
+GO
+
+RESTORE DATABASE BackupTest
+FROM DISK = 'C:\Backup\BackupTest.bak'
+WITH REPLACE;
+GO
+
+
+---------------------------------------------------
+-- Aufgabe 2 
+-- Wiederholen Sie die Schritte aus der ersten Aufgabe, aber verwenden Sie ausschließlich TSQL-Kommandos. 
+-- Testen Sie die Befehle RESTORE VERIFYONLY und RESTORE HEADERONLY
+---------------------------------------------------
+
+-- Antwort
+
+CREATE DATABASE BackupTest2;
+GO
+
+ALTER DATABASE BackupTest2
+SET RECOVERY FULL;
+GO
+
+USE BackupTest2;
+GO
+
+CREATE TABLE Cities (
+    Name VARCHAR(50)
+);
+
+CREATE TABLE Laender (
+    Name VARCHAR(50)
+);
+GO
+
+INSERT INTO Cities
+SELECT Name
+FROM Mondial.dbo.City
+WHERE Name LIKE '[A-F]%';
+GO
+
+BACKUP DATABASE BackupTest2
+TO DISK = 'C:\Backup\BackupTest2.bak'
+WITH INIT;
+GO
+
+
+---------------------------------------------------
+-- Testen Sie die Befehle RESTORE VERIFYONLY
+---------------------------------------------------
+
+-- Antwort
+
+RESTORE VERIFYONLY
+FROM DISK = 'C:\Backup\BackupTest2.bak';
+GO
+
+
+---------------------------------------------------
+-- Testen Sie die Befehle RESTORE HEADERONLY
+---------------------------------------------------
+
+-- Antwort
+
+RESTORE HEADERONLY
+FROM DISK = 'C:\Backup\BackupTest2.bak';
+GO
